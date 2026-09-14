@@ -1,0 +1,47 @@
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Database dumps
+*.sql
+
+# Uploads & User Media (keep directory via .gitkeep)
+/public/uploads/fasilitas/*
+!/public/uploads/fasilitas/.gitkeep
+/public/uploads/laporan/*
+!/public/uploads/laporan/.gitkeep
+/public/uploads/perbaikan/*
+!/public/uploads/perbaikan/.gitkeep
+/public/uploads/qrcode/*
+!/public/uploads/qrcode/.gitkeep
+
+# Storage framework
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed

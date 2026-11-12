@@ -43,7 +43,8 @@ class TugasController extends Controller
     {
         $tugas = Penugasan::with(
             'laporan.fasilitas'
-        )->findOrFail($id);
+        )->where('id_user', auth()->id())
+         ->findOrFail($id);
 
         return view(
             'perbaikan.create',
@@ -55,10 +56,14 @@ class TugasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_penugasan' => 'required',
-            'foto_bukti' => 'required|image',
-            'keterangan' => 'required'
+            'id_penugasan' => 'required|exists:penugasans,id_penugasan',
+            'foto_bukti'   => 'required|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'keterangan'   => 'required|string|min:5|max:1000'
         ]);
+
+        // cari penugasan milik petugas yang login
+        $penugasan = Penugasan::where('id_user', auth()->id())
+            ->findOrFail($request->id_penugasan);
 
         $foto = null;
 
@@ -69,18 +74,17 @@ class TugasController extends Controller
 
         // simpan perbaikan
         $perbaikan = Perbaikan::create([
-            'id_penugasan' => $request->id_penugasan,
+            'id_penugasan' => $penugasan->id_penugasan,
             'foto_bukti' => $foto,
             'keterangan' => $request->keterangan,
             'status_validasi' => 'menunggu_validasi',
             'tgl_selesai' => now()
         ]);
 
-        //notifikasi
+        // notifikasi
         $admins = User::where('role', 'admin')->get();
 
         foreach ($admins as $admin) {
-
             Notifikasi::create([
                 'id_user' => $admin->id,
                 'judul' => 'Validasi Perbaikan',
@@ -93,22 +97,17 @@ class TugasController extends Controller
             Cache::forget('validasi_count');
         }
 
-        // cari penugasan
-        $penugasan = Penugasan::findOrFail(
-            $request->id_penugasan
-        );
-
         // update status penugasan menjadi menunggu_validasi
         $penugasan->update([
             'status' => 'menunggu_validasi'
         ]);
 
-        // update status laporan menjadi menunggu_validasi
+        // update status laporan menjadi diproses
         $penugasan->laporan->update([
             'status' => 'diproses'
         ]);
 
-        return redirect('/tugas')
+        return redirect()->route('tugas.index')
             ->with(
                 'success',
                 'Laporan perbaikan berhasil dikirim'

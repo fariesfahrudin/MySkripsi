@@ -59,11 +59,6 @@
     "extra": {
         "branch-alias": {
             "dev-master": "12.x-dev"
-        },
-        "laravel": {
-            "dont-discover": [
-                "intervention/image-laravel"
-            ]
         }
     },
     "config": {

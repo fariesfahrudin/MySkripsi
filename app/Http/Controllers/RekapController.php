@@ -75,6 +75,7 @@ class RekapController extends Controller
             '=',
             'fasilitas.id_fasilitas'
         )
+            ->where('laporan.status', 'selesai')
             ->select(
                 'fasilitas.nama_fasilitas',
                 'fasilitas.lokasi',

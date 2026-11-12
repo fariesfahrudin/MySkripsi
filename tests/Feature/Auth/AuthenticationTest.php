@@ -2,40 +2,76 @@
 
 use App\Models\User;
 
-test('login screen can be rendered', function () {
+test('halaman login dapat dibuka', function () {
     $response = $this->get('/login');
 
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('admin berhasil login dan diarahkan ke dashboard admin', function () {
+    $admin = User::factory()->admin()->create([
+        'password' => 'password123',
+    ]);
 
     $response = $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'password',
+        'username' => $admin->username,
+        'password' => 'password123',
+        'role'     => 'admin',
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('dashboard.admin'));
 });
 
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+test('petugas berhasil login dan diarahkan ke dashboard petugas', function () {
+    $petugas = User::factory()->create([
+        'password' => 'password123',
+    ]);
 
-    $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'wrong-password',
+    $response = $this->post('/login', [
+        'username' => $petugas->username,
+        'password' => 'password123',
+        'role'     => 'petugas',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard.petugas'));
+});
+
+test('login gagal jika password salah', function () {
+    $user = User::factory()->create([
+        'password' => 'password123',
+    ]);
+
+    $response = $this->post('/login', [
+        'username' => $user->username,
+        'password' => 'password-salah',
+        'role'     => 'petugas',
     ]);
 
     $this->assertGuest();
 });
 
-test('users can logout', function () {
+test('login gagal jika role tidak sesuai', function () {
+    $user = User::factory()->create([
+        'password' => 'password123',
+        'role'     => 'petugas',
+    ]);
+
+    $response = $this->post('/login', [
+        'username' => $user->username,
+        'password' => 'password123',
+        'role'     => 'admin',
+    ]);
+
+    $this->assertGuest();
+});
+
+test('pengguna dapat logout', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/logout');
 
     $this->assertGuest();
-    $response->assertRedirect('/');
+    $response->assertRedirect('/login');
 });

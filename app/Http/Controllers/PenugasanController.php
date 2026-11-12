@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Notifikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PenugasanController extends Controller
 {
@@ -31,32 +32,35 @@ class PenugasanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_laporan' => 'required',
-            'id_user' => 'required'
+            'id_laporan' => 'required|exists:laporan,id_laporan',
+            'id_user'    => 'required|exists:users,id'
         ]);
 
-        // simpan penugasan
-        Penugasan::create([
-            'id_laporan' => $request->id_laporan,
-            'id_user' => $request->id_user,
-            'status' => 'diproses'
-        ]);
-        //notifikasi
-        Notifikasi::create([
-            'id_user' => $request->id_user,
-            'judul' => 'Tugas Baru',
-            'pesan' => 'Anda mendapatkan tugas perbaikan fasilitas',
-            'tipe' => 'tugas_baru'
-        ]);
+        DB::transaction(function () use ($request) {
+            // simpan penugasan
+            Penugasan::create([
+                'id_laporan' => $request->id_laporan,
+                'id_user'    => $request->id_user,
+                'status'     => 'diproses'
+            ]);
+
+            // notifikasi
+            Notifikasi::create([
+                'id_user' => $request->id_user,
+                'judul'   => 'Tugas Baru',
+                'pesan'   => 'Anda mendapatkan tugas perbaikan fasilitas',
+                'tipe'    => 'tugas_baru'
+            ]);
+
+            // update status laporan
+            Laporan::where('id_laporan', $request->id_laporan)
+                ->update([
+                    'status' => 'diproses'
+                ]);
+        });
 
         // invalidate cache notifikasi petugas yg ditugaskan
         Cache::forget('notif_count_' . $request->id_user);
-
-        // update status laporan
-        Laporan::where('id_laporan', $request->id_laporan)
-            ->update([
-                'status' => 'diproses'
-            ]);
 
         return back()->with(
             'success',

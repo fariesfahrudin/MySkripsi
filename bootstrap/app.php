@@ -17,9 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'close.session' => \App\Http\Middleware\CloseSessionEarly::class,
         ]);
     })
-    ->withMiddleware(function (Middleware $middleware) {
-        //
-    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
